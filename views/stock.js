@@ -29,22 +29,8 @@ var StockSelect = React.createClass({
 var StockInfo = React.createClass({
   render: function() {
     return (
-        <table id="stockinfo" border="1">
-        <tr>
-            <th>股票代码</th>
-            <th>股票公司名</th>
-            <th>开盘价</th>
-            <th>收盘价</th>
-            <th>交易总额</th>
-        </tr>
-        <tr>
-            <td>IBM</td>
-            <td>IBM</td>
-            <td>100.2</td>
-            <td>120.3</td>
-            <td>87392</td>
-        </tr>
-        </table>
+        <textarea id="stockinfo" rows="50" cols="200">
+        </textarea>
     );
   }
 });
@@ -54,6 +40,19 @@ var Stock = React.createClass({
   getInitialState: function() {
     return {data: []};
   },
+    
+    reflashTable: function(data) {
+        var stockinfo = document.getElementById("stockinfo");
+        var len = data.length;
+        stockinfo.rows = len;
+        var info = "";
+        for(var i = 0; i < len; ++ i){
+            info += data[i].name + " " + data[i].date + " " + data[i].open + " " + data[i].max +
+            " " + data[i].min + " " + data[i].end + " " + data[i].uprate + " " + data[i].vibrationrate + 
+            " " + data[i].sumtimes + " " + data[i].summoney + "\n";
+        }
+        stockinfo.value = info;
+    },
     
     loadStockIDsFromServer: function() {
         $.ajax({
@@ -77,10 +76,10 @@ var Stock = React.createClass({
             type: 'POST',
             data: stockid,
             success: function(data) {
-                console.log(data);
+                this.reflashTable(data);
             }.bind(this),
             error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
+                alert(this.props.url, status, err.toString());
             }.bind(this)
         });
     },

@@ -19697,21 +19697,7 @@
 	var StockInfo = React.createClass({displayName: "StockInfo",
 	  render: function() {
 	    return (
-	        React.createElement("table", {id: "stockinfo", border: "1"}, 
-	        React.createElement("tr", null, 
-	            React.createElement("th", null, "股票代码"), 
-	            React.createElement("th", null, "股票公司名"), 
-	            React.createElement("th", null, "开盘价"), 
-	            React.createElement("th", null, "收盘价"), 
-	            React.createElement("th", null, "交易总额")
-	        ), 
-	        React.createElement("tr", null, 
-	            React.createElement("td", null, "IBM"), 
-	            React.createElement("td", null, "IBM"), 
-	            React.createElement("td", null, "100.2"), 
-	            React.createElement("td", null, "120.3"), 
-	            React.createElement("td", null, "87392")
-	        )
+	        React.createElement("textarea", {id: "stockinfo", rows: "50", cols: "200"}
 	        )
 	    );
 	  }
@@ -19722,6 +19708,19 @@
 	  getInitialState: function() {
 	    return {data: []};
 	  },
+	    
+	    reflashTable: function(data) {
+	        var stockinfo = document.getElementById("stockinfo");
+	        var len = data.length;
+	        stockinfo.rows = len;
+	        var info = "";
+	        for(var i = 0; i < len; ++ i){
+	            info += data[i].name + " " + data[i].date + " " + data[i].open + " " + data[i].max +
+	            " " + data[i].min + " " + data[i].end + " " + data[i].uprate + " " + data[i].vibrationrate + 
+	            " " + data[i].sumtimes + " " + data[i].summoney + "\n";
+	        }
+	        stockinfo.value = info;
+	    },
 	    
 	    loadStockIDsFromServer: function() {
 	        $.ajax({
@@ -19745,10 +19744,10 @@
 	            type: 'POST',
 	            data: stockid,
 	            success: function(data) {
-	                console.log(data);
+	                this.reflashTable(data);
 	            }.bind(this),
 	            error: function(xhr, status, err) {
-	                console.error(this.props.url, status, err.toString());
+	                alert(this.props.url, status, err.toString());
 	            }.bind(this)
 	        });
 	    },
