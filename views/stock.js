@@ -6,14 +6,20 @@ var $ = require('jquery');
 var StockSelect = React.createClass({
   stockSelect: function(e) {
     var select_data = e.target.value;
-    this.refs.op1.text = select_data;
-    alert(select_data);
+    this.props.onSelectStock({stockid: select_data});
   },
+    
   render: function() {
-    return (
+    var stocks = this.props.data.map(function (stock_id){
+        return (
+            <option ref={stock_id}>
+            {stock_id}
+            </option>
+        );
+    });
+    return(
         <select name="stock" id="stock" onChange={this.stockSelect}>
-        <option ref="op1">beijing</option>
-        <option>chognqing</option>
+        {stocks}
         </select>
     );
   }
@@ -48,11 +54,46 @@ var Stock = React.createClass({
   getInitialState: function() {
     return {data: []};
   },
+    
+    loadStockIDsFromServer: function() {
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                this.setState({data:data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    
+    handleStockIDToServer: function(stockid) {
+        // submit to stock id to server
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            type: 'POST',
+            data: stockid,
+            success: function(data) {
+                console.log(data);
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    
+    componentDidMount: function() {
+        this.loadStockIDsFromServer();
+    },
+    
   render: function() {
     return (
       <div className="stock">
         选择股票
-        <StockSelect/>
+        <StockSelect data={this.state.data} onSelectStock={this.handleStockIDToServer}/>
         <p></p>
         <StockInfo/>
       </div>

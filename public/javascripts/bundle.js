@@ -53,10 +53,10 @@
 
 	var React = __webpack_require__(2);
 	var ReactDOM = __webpack_require__(159);
-	var CommentBox = __webpack_require__(160);
+	var Stock = __webpack_require__(160);
 	
 	ReactDOM.render(
-	    React.createElement(CommentBox, {url: "/stock"}),
+	    React.createElement(Stock, {url: "/stock"}),
 	    document.getElementById('stock')
 	 );
 
@@ -19674,14 +19674,20 @@
 	var StockSelect = React.createClass({displayName: "StockSelect",
 	  stockSelect: function(e) {
 	    var select_data = e.target.value;
-	    this.refs.op1.text = select_data;
-	    alert(select_data);
+	    this.props.onSelectStock({stockid: select_data});
 	  },
+	    
 	  render: function() {
-	    return (
+	    var stocks = this.props.data.map(function (stock_id){
+	        return (
+	            React.createElement("option", {ref: stock_id}, 
+	            stock_id
+	            )
+	        );
+	    });
+	    return(
 	        React.createElement("select", {name: "stock", id: "stock", onChange: this.stockSelect}, 
-	        React.createElement("option", {ref: "op1"}, "beijing"), 
-	        React.createElement("option", null, "chognqing")
+	        stocks
 	        )
 	    );
 	  }
@@ -19716,11 +19722,46 @@
 	  getInitialState: function() {
 	    return {data: []};
 	  },
+	    
+	    loadStockIDsFromServer: function() {
+	        $.ajax({
+	            url: this.props.url,
+	            dataType: 'json',
+	            cache: false,
+	            success: function(data) {
+	                this.setState({data:data});
+	            }.bind(this),
+	            error: function(xhr, status, err) {
+	                console.error(this.props.url, status, err.toString());
+	            }.bind(this)
+	        });
+	    },
+	    
+	    handleStockIDToServer: function(stockid) {
+	        // submit to stock id to server
+	        $.ajax({
+	            url: this.props.url,
+	            dataType: 'json',
+	            type: 'POST',
+	            data: stockid,
+	            success: function(data) {
+	                console.log(data);
+	            }.bind(this),
+	            error: function(xhr, status, err) {
+	                console.error(this.props.url, status, err.toString());
+	            }.bind(this)
+	        });
+	    },
+	    
+	    componentDidMount: function() {
+	        this.loadStockIDsFromServer();
+	    },
+	    
 	  render: function() {
 	    return (
 	      React.createElement("div", {className: "stock"}, 
 	        "选择股票", 
-	        React.createElement(StockSelect, null), 
+	        React.createElement(StockSelect, {data: this.state.data, onSelectStock: this.handleStockIDToServer}), 
 	        React.createElement("p", null), 
 	        React.createElement(StockInfo, null)
 	      )

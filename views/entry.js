@@ -1,8 +1,8 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var CommentBox = require('./Stock');
+var Stock = require('./Stock');
 
 ReactDOM.render(
-    <CommentBox url="/stock"/>,
+    <Stock url="/stock"/>,
     document.getElementById('stock')
  );
