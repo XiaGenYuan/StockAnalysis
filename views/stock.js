@@ -3,37 +3,8 @@ var ReactDOM = require('react-dom');
 var marked = require('marked');
 var $ = require('jquery');
 
-var StockSelect = React.createClass({
-  stockSelect: function(e) {
-    var select_data = e.target.value;
-    this.props.onSelectStock({stockid: select_data});
-  },
-    
-  render: function() {
-    var stocks = this.props.data.map(function (stock_id){
-        return (
-            <option ref={stock_id}>
-            {stock_id}
-            </option>
-        );
-    });
-    return(
-        <select name="stock" id="stock" onChange={this.stockSelect}>
-        {stocks}
-        </select>
-    );
-  }
-});
-
-
-var StockInfo = React.createClass({
-  render: function() {
-    return (
-        <textarea id="stockinfo" rows="50" cols="200">
-        </textarea>
-    );
-  }
-});
+var StockSelect = require('./StockSelect');
+var StockInfo = require('./StockInfo');
 
 
 var Stock = React.createClass({
@@ -44,7 +15,7 @@ var Stock = React.createClass({
     reflashTable: function(data) {
         var stockinfo = document.getElementById("stockinfo");
         var len = data.length;
-        stockinfo.rows = len;
+        /*stockinfo.rows = len;
         var info = "";
         for(var i = 0; i < len; ++ i){
             info += data[i].name + " " + data[i].date + " " + data[i].open + " " + data[i].max +
@@ -52,6 +23,9 @@ var Stock = React.createClass({
             " " + data[i].sumtimes + " " + data[i].summoney + "\n";
         }
         stockinfo.value = info;
+        */
+        
+        this.refs.stockinfo.drawLineChart(data);
     },
     
     loadStockIDsFromServer: function() {
@@ -94,7 +68,7 @@ var Stock = React.createClass({
         选择股票
         <StockSelect data={this.state.data} onSelectStock={this.handleStockIDToServer}/>
         <p></p>
-        <StockInfo/>
+        <StockInfo ref="stockinfo"/>
       </div>
     );
   }
