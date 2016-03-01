@@ -19,18 +19,18 @@ var StockInfo = React.createClass({
         var w = 1000;
         var h = 400;
         var padding = 40;
-        //用一个变量存储标题和副标题的高度，如果没有标题什么的，就为0
+        // title height
         var head_height  = padding;
         var title = data[0].name + "股票收盘统计图";
         var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
-        //用一个变量计算底部的高度，如果不是多系列，就为0
+        
         var foot_height = padding;
         
-        //定义画布
+        // define svg
         var svg = d3.select("#stockinfo")
             .attr("width", w)
             .attr("height", h);
-        //添加背景
+        // add background
         svg.append("g")
             .append("rect")
             .attr("x", 0)
@@ -41,7 +41,7 @@ var StockInfo = React.createClass({
             .style("stroke-width", 2)
             .style("stroke", "#E7E7E7");
                                   
-        //添加标题
+        // add title
         if(title != "")
         {
             svg.append("g")
@@ -54,7 +54,7 @@ var StockInfo = React.createClass({
         }
                        
    
-        //添加副标题
+        // add sub title
         if(subTitle != "")
         {
             svg.append("g")
@@ -66,20 +66,20 @@ var StockInfo = React.createClass({
             head_height += 20;
         }
                      
-        //横坐标轴比例尺
+        
         var xScale = d3.scale.linear()
             .domain([0, dataset.length - 1])
             .range([padding, w - padding]);
-        //纵坐标轴比例尺
+        
         var yScale = d3.scale.linear()
             .domain([0, d3.max(dataset)])
             .range([h - foot_height, head_height]);
-        //定义横轴
+        // define s axis
         var xAxis = d3.svg.axis()
             .scale(xScale)
             .orient("bottom").
             ticks(5);
-        //添加横坐标轴并通过编号获取对应的横轴标签
+        
         var xBar = svg.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(0," + (h - padding) + ")")
@@ -88,18 +88,18 @@ var StockInfo = React.createClass({
             .text(function(d){
                 return xMarks[d];
             });
-        //定义纵轴
+        // define y axis
         var yAxis = d3.svg.axis()
             .scale(yScale)
             .orient("left").
             ticks(10);
-        //添加纵轴
+    
         var yBar=svg.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(" + padding + ",0)")
             .call(yAxis);
                                   
-        //添加折线
+        // add line chart
         var line = d3.svg.line()
             .x(function(d, i){return xScale(i);})
             .y(function(d){return yScale(d);});
@@ -110,7 +110,7 @@ var StockInfo = React.createClass({
             .style("stroke-width", 1)
             .style("stroke", "#09F")
             .style("stroke-opacity", 0.9);
-        //添加系列的小圆点
+        
         svg.selectAll("circle")
             .data(dataset)
             .enter()
@@ -123,15 +123,15 @@ var StockInfo = React.createClass({
             })
             .attr("r",3)
             .attr("fill","#09F");
-        //重新作图
+        
         yBar.transition().duration(1000).call(yAxis);
-        //纵轴数据更新
+        
         yScale = d3.scale.linear()
             .domain([0, d3.max(dataset)])
             .range([h - padding, head_height]);
-        //重绘路径
+        
         path.transition().duration(1000).attr("d", line(dataset));
-        //重绘4圆点
+        
         svg.selectAll("circle")
             .data(dataset)
             .transition()

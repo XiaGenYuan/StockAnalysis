@@ -1,3 +1,5 @@
-Stock visualization analysis for Dow Jones's constituent stock.
+Stock visualization analysis for Dow Jones's constituent stocks.
 
-use webpack to pack React.js.
+Use webpack to pack React.js.
+
+Use D3.js to visualize stock data.

@@ -13,18 +13,6 @@ var Stock = React.createClass({
   },
     
     reflashTable: function(data) {
-        var stockinfo = document.getElementById("stockinfo");
-        var len = data.length;
-        /*stockinfo.rows = len;
-        var info = "";
-        for(var i = 0; i < len; ++ i){
-            info += data[i].name + " " + data[i].date + " " + data[i].open + " " + data[i].max +
-            " " + data[i].min + " " + data[i].end + " " + data[i].uprate + " " + data[i].vibrationrate + 
-            " " + data[i].sumtimes + " " + data[i].summoney + "\n";
-        }
-        stockinfo.value = info;
-        */
-        
         this.refs.stockinfo.drawLineChart(data);
     },
     
@@ -35,6 +23,10 @@ var Stock = React.createClass({
             cache: false,
             success: function(data) {
                 this.setState({data:data});
+                if(data.length > 0){
+                    var id = data[0].split(' ')[0];
+                    this.handleStockIDToServer({stockid: id});
+                }
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());

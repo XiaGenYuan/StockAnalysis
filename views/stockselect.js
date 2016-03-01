@@ -18,7 +18,7 @@ var StockSelect = React.createClass({
         );
     });
     return(
-        <select name="stock" id="stock" onChange={this.stockSelect}>
+        <select name="stock" id="stock" ref="stock" onChange={this.stockSelect}>
         {stocks}
         </select>
     );
