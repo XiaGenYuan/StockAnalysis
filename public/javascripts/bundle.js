@@ -19677,7 +19677,7 @@
 	
 	var Stock = React.createClass({displayName: "Stock",
 	  getInitialState: function() {
-	    return {data: []};
+	    return {data: [], stockdata: []};
 	  },
 	    
 	    reflashTable: function(data) {
@@ -19690,7 +19690,7 @@
 	            dataType: 'json',
 	            cache: false,
 	            success: function(data) {
-	                this.setState({data:data});
+	                this.setState({data: data});
 	                if(data.length > 0){
 	                    var id = data[0].split(' ')[0];
 	                    this.handleStockIDToServer({stockid: id});
@@ -30911,7 +30911,8 @@
 	var d3 = __webpack_require__(165);
 	
 	var StockInfo = React.createClass({displayName: "StockInfo",
-	    drawLineChart: function(data) {
+	    drawLineChart: function(data) {         
+	        var dateinfo = [[data]];
 	        var dataset = [];
 	        var xMarks = [];
 	        var len = data.length;
@@ -30934,6 +30935,7 @@
 	        
 	        // define svg
 	        var svg = d3.select("#stockinfo")
+	            .data(dateinfo)
 	            .attr("width", w)
 	            .attr("height", h);
 	        // add background
@@ -30977,6 +30979,10 @@
 	            .domain([0, dataset.length - 1])
 	            .range([padding, w - padding]);
 	        
+	        var xScaleOpp = d3.scale.linear()
+	            .domain([padding, w - padding])
+	            .range([0, dataset.length - 1]);
+	        
 	        var yScale = d3.scale.linear()
 	            .domain([0, d3.max(dataset)])
 	            .range([h - foot_height, head_height]);
@@ -31009,13 +31015,14 @@
 	        var line = d3.svg.line()
 	            .x(function(d, i){return xScale(i);})
 	            .y(function(d){return yScale(d);});
-	        var path=svg.append("path")
+	        var path = svg.append("path")
 	            .attr("d", line(dataset))
 	            .style("fill", "#F00")
 	            .style("fill", "none")
 	            .style("stroke-width", 1)
 	            .style("stroke", "#09F")
 	            .style("stroke-opacity", 0.9);
+	        
 	        
 	        svg.selectAll("circle")
 	            .data(dataset)
@@ -31047,9 +31054,28 @@
 	            })
 	            .attr("cy", function(d) {
 	                return yScale(d);
-	            })      
+	            })
+	            
+	        var info = svg.append("g")
+	                        .append("text")
+	                        .text("")
+	                        .attr("x", padding)
+	                        .attr("y", head_height);
+	                
+	        svg.on('mousemove', function(d) {
+	            var pos = d3.mouse(this);
+	            var index = parseInt(xScaleOpp(pos[0]));
+	            info.text("股票名：" + d[0][index].name +  " \r\n" +
+	                      "日期：" + d[0][index].date + " \r\n" + 
+	                      "开盘价：" + d[0][index].open + " \r\n" + 
+	                      "收盘价：" + d[0][index].end + " \r\n" + 
+	                      "交易总额：" + d[0][index].summoney)
+	                .attr("x", padding)
+	                .attr("y", h - padding - 10);
+	        })
 	    },
 	    
+	        
 	  render: function() {
 	    return (
 	        React.createElement("svg", {id: "stockinfo"}

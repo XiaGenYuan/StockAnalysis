@@ -9,7 +9,7 @@ var StockInfo = require('./StockInfo');
 
 var Stock = React.createClass({
   getInitialState: function() {
-    return {data: []};
+    return {data: [], stockdata: []};
   },
     
     reflashTable: function(data) {
@@ -22,7 +22,7 @@ var Stock = React.createClass({
             dataType: 'json',
             cache: false,
             success: function(data) {
-                this.setState({data:data});
+                this.setState({data: data});
                 if(data.length > 0){
                     var id = data[0].split(' ')[0];
                     this.handleStockIDToServer({stockid: id});
