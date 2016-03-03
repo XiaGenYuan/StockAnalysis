@@ -9,7 +9,7 @@ var StockInfo = require('./StockInfo');
 
 var Stock = React.createClass({
   getInitialState: function() {
-    return {data: [], stockdata: []};
+    return {data: []};
   },
     
     reflashTable: function(data) {

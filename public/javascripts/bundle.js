@@ -19677,7 +19677,7 @@
 	
 	var Stock = React.createClass({displayName: "Stock",
 	  getInitialState: function() {
-	    return {data: [], stockdata: []};
+	    return {data: []};
 	  },
 	    
 	    reflashTable: function(data) {
@@ -30920,6 +30920,7 @@
 	        var min = 10000;
 	        for(var i = 1; i < len; i++) {
 	            dataset.push(parseFloat(data[i].end));
+	            console.log(data[i].date);
 	            xMarks.push(data[i].date);
 	        }
 	        
@@ -30986,6 +30987,10 @@
 	        var yScale = d3.scale.linear()
 	            .domain([0, d3.max(dataset)])
 	            .range([h - foot_height, head_height]);
+	        
+	        var yScaleOpp = d3.scale.linear()
+	            .domain([h - foot_height, head_height])
+	            .range([0, d3.max(dataset)]);
 	        // define s axis
 	        var xAxis = d3.svg.axis()
 	            .scale(xScale)
@@ -31023,8 +31028,8 @@
 	            .style("stroke", "#09F")
 	            .style("stroke-opacity", 0.9);
 	        
-	        
-	        svg.selectAll("circle")
+	        /*
+	        var circle = svg.selectAll("circle")
 	            .data(dataset)
 	            .enter()
 	            .append("circle")
@@ -31034,10 +31039,12 @@
 	            .attr("cy", function(d) {
 	                return yScale(d);
 	            })
-	            .attr("r",3)
-	            .attr("fill","#09F");
-	        
+	            .attr("r", 3)
+	            .attr("fill", "#09F");
+	        */
+	            
 	        yBar.transition().duration(1000).call(yAxis);
+	        
 	        
 	        yScale = d3.scale.linear()
 	            .domain([0, d3.max(dataset)])
@@ -31045,6 +31052,7 @@
 	        
 	        path.transition().duration(1000).attr("d", line(dataset));
 	        
+	        /*
 	        svg.selectAll("circle")
 	            .data(dataset)
 	            .transition()
@@ -31055,24 +31063,48 @@
 	            .attr("cy", function(d) {
 	                return yScale(d);
 	            })
+	        */
 	            
+	        // 在 svg 中插入 polyline
+	        polyline = svg.append('polyline')
+	                        .attr({
+	                            points: '0, 0 0, 0'
+	                        })
+	                        .attr('id', 'line')
+	                        .style({
+	                            fill: 'black',
+	                            stroke: 'green',
+	                            'stroke-width': 1
+	                        });
+	        
 	        var info = svg.append("g")
 	                        .append("text")
 	                        .text("")
+	                        .attr('id', 'info')
 	                        .attr("x", padding)
 	                        .attr("y", head_height);
+	            
 	                
 	        svg.on('mousemove', function(d) {
 	            var pos = d3.mouse(this);
 	            var index = parseInt(xScaleOpp(pos[0]));
-	            info.text("股票名：" + d[0][index].name +  " \r\n" +
-	                      "日期：" + d[0][index].date + " \r\n" + 
-	                      "开盘价：" + d[0][index].open + " \r\n" + 
-	                      "收盘价：" + d[0][index].end + " \r\n" + 
-	                      "交易总额：" + d[0][index].summoney)
+	            info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
+	                      "日期：" + d[0][index + 1].date + " \r\n" + 
+	                      "开盘价：" + d[0][index + 1].open + " \r\n" + 
+	                      "收盘价：" + d[0][index + 1].end + " \r\n" + 
+	                      "交易总额：" + d[0][index + 1].summoney)
 	                .attr("x", padding)
 	                .attr("y", h - padding - 10);
+	            polyline.attr({points: '' + pos[0] + ', ' + yScale(d[0][index + 1].end) + ' ' + pos[0] + ', ' + (h - foot_height)});  
 	        })
+	        .on('mouseenter', function(d) {
+	        })
+	        .on('mouseout', function(d) {
+	            //d3.select('#line').remove();
+	            //d3.select('#info').remove();
+	            info.text('');
+	            polyline.attr({points: '0, 0 0, 0'});
+	        });
 	    },
 	    
 	        
