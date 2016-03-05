@@ -12,8 +12,8 @@ var Stock = React.createClass({
     return {data: []};
   },
     
-    reflashTable: function(data) {
-        this.refs.stockinfo.drawLineChart(data);
+    reflashTable: function(stockname, companyname, data) {
+        this.refs.stockinfo.drawLineChart(stockname, companyname, data);
     },
     
     loadStockIDsFromServer: function() {
@@ -24,8 +24,8 @@ var Stock = React.createClass({
             success: function(data) {
                 this.setState({data: data});
                 if(data.length > 0){
-                    var id = data[0].split(' ')[0];
-                    this.handleStockIDToServer({stockid: id});
+                    //var id = data[0].split(' ')[0];
+                    this.handleStockIDToServer({stockid: data[0]});
                 }
             }.bind(this),
             error: function(xhr, status, err) {
@@ -42,7 +42,10 @@ var Stock = React.createClass({
             type: 'POST',
             data: stockid,
             success: function(data) {
-                this.reflashTable(data);
+                var stockname = stockid.stockid.split(' ')[0];
+                var companyname = stockid.stockid.split(' ')[1];
+                console.log(stockname + " " + companyname);
+                this.reflashTable(stockname, companyname, data);
             }.bind(this),
             error: function(xhr, status, err) {
                 alert(this.props.url, status, err.toString());
@@ -58,7 +61,7 @@ var Stock = React.createClass({
     return (
       <div className="stock">
         选择股票
-        <StockSelect data={this.state.data} onSelectStock={this.handleStockIDToServer}/>
+        <StockSelect  ref="select" data={this.state.data} onSelectStock={this.handleStockIDToServer}/>
         <p></p>
         <StockInfo ref="stockinfo"/>
       </div>

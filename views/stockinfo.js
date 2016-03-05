@@ -5,7 +5,7 @@ var $ = require('jquery');
 var d3 = require('d3');
 
 var StockInfo = React.createClass({
-    drawLineChart: function(data) {         
+    drawLineChart: function(stockname, companyname, data) {         
         var dateinfo = [[data]];
         var dataset = [];
         var xMarks = [];
@@ -23,7 +23,7 @@ var StockInfo = React.createClass({
         var padding = 40;
         // title height
         var head_height  = padding;
-        var title = data[0].name + "股票收盘统计图";
+        var title = stockname + "股票收盘统计图";
         var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
         
         var foot_height = padding;
@@ -99,6 +99,7 @@ var StockInfo = React.createClass({
             .text(function(d){
                 return xMarks[d];
             });
+        
         // define y axis
         var yAxis = d3.svg.axis()
             .scale(yScale)
@@ -171,33 +172,60 @@ var StockInfo = React.createClass({
                             'stroke-width': 1
                         });
         
+        /*
         var info = svg.append("g")
                         .append("text")
                         .text("")
                         .attr('id', 'info')
                         .attr("x", padding)
                         .attr("y", head_height);
+                        */
+                        
+        d3.select('#tooltip').remove();
+        
+		var tooltip = d3.select("body")
+            .append("div")
+            .attr('id', 'tooltip')
+            .attr("class", "tooltip")
+            .style("opacity", 0.0);
             
                 
         svg.on('mousemove', function(d) {
             var pos = d3.mouse(this);
             var index = parseInt(xScaleOpp(pos[0]));
-            info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
+            /*info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
                       "日期：" + d[0][index + 1].date + " \r\n" + 
                       "开盘价：" + d[0][index + 1].open + " \r\n" + 
                       "收盘价：" + d[0][index + 1].end + " \r\n" + 
                       "交易总额：" + d[0][index + 1].summoney)
                 .attr("x", padding)
                 .attr("y", h - padding - 10);
-            polyline.attr({points: '' + pos[0] + ', ' + yScale(d[0][index + 1].end) + ' ' + pos[0] + ', ' + (h - foot_height)});  
+                */
+            polyline.attr({points: '' + pos[0] + ', ' + yScale(parseFloat(d[0][index + 1].end)) + ' ' + pos[0] + ', ' + (h - foot_height)});  
+            
+            tooltip.html("股票：" + stockname +  "<br />" +
+                "公司: " + companyname + "<br />" + 
+                "日期：" + d[0][index + 1].date + "<br />" + 
+                "开盘：" + d[0][index + 1].open + "<br />" + 
+                "最高: " + d[0][index + 1].max + "<br />" + 
+                "最低: " + d[0][index + 1].min + "<br />" +
+                "收盘：" + d[0][index + 1].end + "<br />" + 
+                "涨幅: " + (d[0][index + 1].uprate * 100).toFixed(2) + "%" + "<br />" + 
+                "振幅：" + (d[0][index + 1].vibrationrate * 100).toFixed(2) + "%" + "<br />" +
+                "总手: " + d[0][index + 1].sumtimes + "<br />" +  
+                "总额：" + d[0][index + 1].summoney)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY + 20) + "px")
+				.style("opacity",1.0);
         })
         .on('mouseenter', function(d) {
         })
         .on('mouseout', function(d) {
             //d3.select('#line').remove();
             //d3.select('#info').remove();
-            info.text('');
+            //info.text('');
             polyline.attr({points: '0, 0 0, 0'});
+            tooltip.style("opacity", 0.0);
         });
     },
     

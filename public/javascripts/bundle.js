@@ -19680,8 +19680,8 @@
 	    return {data: []};
 	  },
 	    
-	    reflashTable: function(data) {
-	        this.refs.stockinfo.drawLineChart(data);
+	    reflashTable: function(stockname, companyname, data) {
+	        this.refs.stockinfo.drawLineChart(stockname, companyname, data);
 	    },
 	    
 	    loadStockIDsFromServer: function() {
@@ -19692,8 +19692,8 @@
 	            success: function(data) {
 	                this.setState({data: data});
 	                if(data.length > 0){
-	                    var id = data[0].split(' ')[0];
-	                    this.handleStockIDToServer({stockid: id});
+	                    //var id = data[0].split(' ')[0];
+	                    this.handleStockIDToServer({stockid: data[0]});
 	                }
 	            }.bind(this),
 	            error: function(xhr, status, err) {
@@ -19710,7 +19710,10 @@
 	            type: 'POST',
 	            data: stockid,
 	            success: function(data) {
-	                this.reflashTable(data);
+	                var stockname = stockid.stockid.split(' ')[0];
+	                var companyname = stockid.stockid.split(' ')[1];
+	                console.log(stockname + " " + companyname);
+	                this.reflashTable(stockname, companyname, data);
 	            }.bind(this),
 	            error: function(xhr, status, err) {
 	                alert(this.props.url, status, err.toString());
@@ -19726,7 +19729,7 @@
 	    return (
 	      React.createElement("div", {className: "stock"}, 
 	        "选择股票", 
-	        React.createElement(StockSelect, {data: this.state.data, onSelectStock: this.handleStockIDToServer}), 
+	        React.createElement(StockSelect, {ref: "select", data: this.state.data, onSelectStock: this.handleStockIDToServer}), 
 	        React.createElement("p", null), 
 	        React.createElement(StockInfo, {ref: "stockinfo"})
 	      )
@@ -30876,7 +30879,7 @@
 	var $ = __webpack_require__(162);
 	
 	var StockSelect = React.createClass({displayName: "StockSelect",
-	  stockSelect: function(e) {
+	  SelectChanged: function(e) {
 	    var select_data = e.target.value;
 	    this.props.onSelectStock({stockid: select_data});
 	  },
@@ -30884,13 +30887,13 @@
 	  render: function() {
 	    var stocks = this.props.data.map(function (stock_id){
 	        return (
-	            React.createElement("option", {ref: stock_id}, 
+	            React.createElement("option", {key: stock_id, ref: stock_id}, 
 	            stock_id
 	            )
 	        );
 	    });
 	    return(
-	        React.createElement("select", {name: "stock", id: "stock", ref: "stock", onChange: this.stockSelect}, 
+	        React.createElement("select", {key: "stockselect", id: "stockselect", ref: "stockselect", onChange: this.SelectChanged}, 
 	        stocks
 	        )
 	    );
@@ -30911,7 +30914,7 @@
 	var d3 = __webpack_require__(165);
 	
 	var StockInfo = React.createClass({displayName: "StockInfo",
-	    drawLineChart: function(data) {         
+	    drawLineChart: function(stockname, companyname, data) {         
 	        var dateinfo = [[data]];
 	        var dataset = [];
 	        var xMarks = [];
@@ -30929,7 +30932,7 @@
 	        var padding = 40;
 	        // title height
 	        var head_height  = padding;
-	        var title = data[0].name + "股票收盘统计图";
+	        var title = stockname + "股票收盘统计图";
 	        var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
 	        
 	        var foot_height = padding;
@@ -31005,6 +31008,7 @@
 	            .text(function(d){
 	                return xMarks[d];
 	            });
+	        
 	        // define y axis
 	        var yAxis = d3.svg.axis()
 	            .scale(yScale)
@@ -31077,33 +31081,60 @@
 	                            'stroke-width': 1
 	                        });
 	        
+	        /*
 	        var info = svg.append("g")
 	                        .append("text")
 	                        .text("")
 	                        .attr('id', 'info')
 	                        .attr("x", padding)
 	                        .attr("y", head_height);
+	                        */
+	                        
+	        d3.select('#tooltip').remove();
+	        
+			var tooltip = d3.select("body")
+	            .append("div")
+	            .attr('id', 'tooltip')
+	            .attr("class", "tooltip")
+	            .style("opacity", 0.0);
 	            
 	                
 	        svg.on('mousemove', function(d) {
 	            var pos = d3.mouse(this);
 	            var index = parseInt(xScaleOpp(pos[0]));
-	            info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
+	            /*info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
 	                      "日期：" + d[0][index + 1].date + " \r\n" + 
 	                      "开盘价：" + d[0][index + 1].open + " \r\n" + 
 	                      "收盘价：" + d[0][index + 1].end + " \r\n" + 
 	                      "交易总额：" + d[0][index + 1].summoney)
 	                .attr("x", padding)
 	                .attr("y", h - padding - 10);
-	            polyline.attr({points: '' + pos[0] + ', ' + yScale(d[0][index + 1].end) + ' ' + pos[0] + ', ' + (h - foot_height)});  
+	                */
+	            polyline.attr({points: '' + pos[0] + ', ' + yScale(parseFloat(d[0][index + 1].end)) + ' ' + pos[0] + ', ' + (h - foot_height)});  
+	            
+	            tooltip.html("股票：" + stockname +  "<br />" +
+	                "公司: " + companyname + "<br />" + 
+	                "日期：" + d[0][index + 1].date + "<br />" + 
+	                "开盘：" + d[0][index + 1].open + "<br />" + 
+	                "最高: " + d[0][index + 1].max + "<br />" + 
+	                "最低: " + d[0][index + 1].min + "<br />" +
+	                "收盘：" + d[0][index + 1].end + "<br />" + 
+	                "涨幅: " + (d[0][index + 1].uprate * 100).toFixed(2) + "%" + "<br />" + 
+	                "振幅：" + (d[0][index + 1].vibrationrate * 100).toFixed(2) + "%" + "<br />" +
+	                "总手: " + d[0][index + 1].sumtimes + "<br />" +  
+	                "总额：" + d[0][index + 1].summoney)
+	                .style("left", (d3.event.pageX) + "px")
+	                .style("top", (d3.event.pageY + 20) + "px")
+					.style("opacity",1.0);
 	        })
 	        .on('mouseenter', function(d) {
 	        })
 	        .on('mouseout', function(d) {
 	            //d3.select('#line').remove();
 	            //d3.select('#info').remove();
-	            info.text('');
+	            //info.text('');
 	            polyline.attr({points: '0, 0 0, 0'});
+	            tooltip.style("opacity", 0.0);
 	        });
 	    },
 	    
