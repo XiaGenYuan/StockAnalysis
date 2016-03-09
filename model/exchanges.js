@@ -14,7 +14,7 @@ var jsonWrite = function(res, ret) {
 module.exports = {
     query: function(sql, req, res){
         db.all(sql, function(err, rows) {
-            console.log(rows);
+            //console.log(rows);
             jsonWrite(res, rows);
         });
     }

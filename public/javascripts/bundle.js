@@ -19673,11 +19673,12 @@
 	
 	var StockSelect = __webpack_require__(163);
 	var StockInfo = __webpack_require__(164);
+	var StockCompareList = __webpack_require__(166);
 	
 	
 	var Stock = React.createClass({displayName: "Stock",
 	  getInitialState: function() {
-	    return {data: []};
+	    return {data: [], compareData: [], compareDataTotal: []};
 	  },
 	    
 	    reflashTable: function(stockname, companyname, data) {
@@ -19712,13 +19713,62 @@
 	            success: function(data) {
 	                var stockname = stockid.stockid.split(' ')[0];
 	                var companyname = stockid.stockid.split(' ')[1];
-	                console.log(stockname + " " + companyname);
-	                this.reflashTable(stockname, companyname, data);
+	                var checked = this.refs.showornot.checked;
+	                if(checked === false) {
+	                    this.reflashTable(stockname, companyname, [data]);
+	                } else {
+	                    var compareDataTotal = this.state.compareDataTotal;
+	                    compareDataTotal.push(data);
+	                    this.setState({compareDataTotal: compareDataTotal});
+	                }
 	            }.bind(this),
 	            error: function(xhr, status, err) {
 	                alert(this.props.url, status, err.toString());
 	            }.bind(this)
 	        });
+	    },
+	    
+	    
+	    addStockToCompare: function() {
+	        this.state.compareData.push(document.getElementById("stockselect").value);
+	        this.setState({compareData: this.state.compareData});
+	    },
+	    
+	    deleteStockFromCompare: function() {
+	    },
+	    
+	    deleteAllStocksFromCompare: function() {
+	    },
+	    
+	    compareShoworNot: function() {
+	        //alert("checkbox:" + this.refs.showornot.checked);
+	        var checked = this.refs.showornot.checked;
+	        if(checked === true) {
+	            this.setState({compareDataTotal: []});
+	            alert("0:" + this.state.compareDataTotal.length);
+	            var comparelist = document.getElementById("stockcompare").options;
+	            var compareStockData = [];
+	            var compare_stocks = "";
+	            alert("1:" + this.state.compareDataTotal.length);
+	            for(var i = 0; i < comparelist.length; ++ i) {
+	                var stockid = comparelist[i].text;
+	                this.handleStockIDToServer({stockid: stockid});
+	                var stockname = stockid.split(' ')[0];
+	                if(i < comparelist.length - 1) {
+	                    compare_stocks += stockname + "、";
+	                } else {
+	                    compare_stocks += stockname;
+	                }
+	            }
+	            alert("2:" + this.state.compareDataTotal.length);
+	            compare_stocks += " " + comparelist.length + "支股票";
+	            var companyname = "多公司";
+	            var compareDataTotal = this.state.compareDataTotal;
+	            this.reflashTable(compare_stocks, companyname, compareDataTotal);
+	        } else {
+	            var stockselect = document.getElementById("stockselect").value;
+	            this.handleStockIDToServer({stockid: stockselect});
+	        }
 	    },
 	    
 	    componentDidMount: function() {
@@ -19730,6 +19780,13 @@
 	      React.createElement("div", {className: "stock"}, 
 	        "选择股票", 
 	        React.createElement(StockSelect, {ref: "select", data: this.state.data, onSelectStock: this.handleStockIDToServer}), 
+	        React.createElement("button", {type: "button", onClick: this.addStockToCompare}, "增加对比"), 
+	        "  " + " " +
+	        "对比股票列表", 
+	        React.createElement(StockCompareList, {ref: "stockcompare", compareData: this.state.compareData}), 
+	        React.createElement("button", {type: "button", onClick: this.deleteStockFromCompare}, "删除"), 
+	        React.createElement("button", {type: "button", onClick: this.deleteAllStocksFromCompare}, "全部删除"), 
+	        React.createElement("input", {type: "checkbox", ref: "showornot", onClick: this.compareShoworNot}, "对比显示"), 
 	        React.createElement("p", null), 
 	        React.createElement(StockInfo, {ref: "stockinfo"})
 	      )
@@ -30914,32 +30971,10 @@
 	var d3 = __webpack_require__(165);
 	
 	var StockInfo = React.createClass({displayName: "StockInfo",
-	    drawLineChart: function(stockname, companyname, data) {         
-	        var dateinfo = [[data]];
-	        var dataset = [];
-	        var xMarks = [];
-	        var len = data.length;
-	        var max = 0;
-	        var min = 10000;
-	        for(var i = 1; i < len; i++) {
-	            dataset.push(parseFloat(data[i].end));
-	            console.log(data[i].date);
-	            xMarks.push(data[i].date);
-	        }
-	        
-	        var w = 1000;
-	        var h = 400;
-	        var padding = 40;
-	        // title height
-	        var head_height  = padding;
-	        var title = stockname + "股票收盘统计图";
-	        var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
-	        
-	        var foot_height = padding;
-	        
+	    addSvg: function(w, h, datainfo) {
 	        // define svg
 	        var svg = d3.select("#stockinfo")
-	            .data(dateinfo)
+	            .data(datainfo)
 	            .attr("width", w)
 	            .attr("height", h);
 	        // add background
@@ -30952,23 +30987,23 @@
 	            .style("fill", "#FFF")
 	            .style("stroke-width", 2)
 	            .style("stroke", "#E7E7E7");
-	                                  
+	        return svg;
+	    },
+	    
+	    addTitle: function(svg, w, h, head_height, title, subTitle) {
 	        // add title
-	        if(title != "")
-	        {
+	        if(title != "") {
 	            svg.append("g")
 	                .append("text")
 	                .text(title)
 	                .attr("class", "title")
-	                .attr("x", w/2)
+	                .attr("x", w / 2)
 	                .attr("y", head_height);
 	            head_height += 30;
 	        }
-	                       
 	   
 	        // add sub title
-	        if(subTitle != "")
-	        {
+	        if(subTitle != "") {
 	            svg.append("g")
 	                .append("text")
 	                .text(subTitle)
@@ -30977,23 +31012,9 @@
 	                .attr("y", head_height);
 	            head_height += 20;
 	        }
-	                     
-	        
-	        var xScale = d3.scale.linear()
-	            .domain([0, dataset.length - 1])
-	            .range([padding, w - padding]);
-	        
-	        var xScaleOpp = d3.scale.linear()
-	            .domain([padding, w - padding])
-	            .range([0, dataset.length - 1]);
-	        
-	        var yScale = d3.scale.linear()
-	            .domain([0, d3.max(dataset)])
-	            .range([h - foot_height, head_height]);
-	        
-	        var yScaleOpp = d3.scale.linear()
-	            .domain([h - foot_height, head_height])
-	            .range([0, d3.max(dataset)]);
+	    },    
+	    
+	    drawAxis: function(svg, w, h, padding, xScale, yScale, xMarks) {
 	        // define s axis
 	        var xAxis = d3.svg.axis()
 	            .scale(xScale)
@@ -31019,97 +31040,12 @@
 	            .attr("class", "axis")
 	            .attr("transform", "translate(" + padding + ",0)")
 	            .call(yAxis);
-	                                  
-	        // add line chart
-	        var line = d3.svg.line()
-	            .x(function(d, i){return xScale(i);})
-	            .y(function(d){return yScale(d);});
-	        var path = svg.append("path")
-	            .attr("d", line(dataset))
-	            .style("fill", "#F00")
-	            .style("fill", "none")
-	            .style("stroke-width", 1)
-	            .style("stroke", "#09F")
-	            .style("stroke-opacity", 0.9);
-	        
-	        /*
-	        var circle = svg.selectAll("circle")
-	            .data(dataset)
-	            .enter()
-	            .append("circle")
-	            .attr("cx", function(d, i) {
-	                return xScale(i);
-	            })
-	            .attr("cy", function(d) {
-	                return yScale(d);
-	            })
-	            .attr("r", 3)
-	            .attr("fill", "#09F");
-	        */
-	            
-	        yBar.transition().duration(1000).call(yAxis);
-	        
-	        
-	        yScale = d3.scale.linear()
-	            .domain([0, d3.max(dataset)])
-	            .range([h - padding, head_height]);
-	        
-	        path.transition().duration(1000).attr("d", line(dataset));
-	        
-	        /*
-	        svg.selectAll("circle")
-	            .data(dataset)
-	            .transition()
-	            .duration(1000)
-	            .attr("cx", function(d, i) {
-	                return xScale(i);
-	            })
-	            .attr("cy", function(d) {
-	                return yScale(d);
-	            })
-	        */
-	            
-	        // 在 svg 中插入 polyline
-	        polyline = svg.append('polyline')
-	                        .attr({
-	                            points: '0, 0 0, 0'
-	                        })
-	                        .attr('id', 'line')
-	                        .style({
-	                            fill: 'black',
-	                            stroke: 'green',
-	                            'stroke-width': 1
-	                        });
-	        
-	        /*
-	        var info = svg.append("g")
-	                        .append("text")
-	                        .text("")
-	                        .attr('id', 'info')
-	                        .attr("x", padding)
-	                        .attr("y", head_height);
-	                        */
-	                        
-	        d3.select('#tooltip').remove();
-	        
-			var tooltip = d3.select("body")
-	            .append("div")
-	            .attr('id', 'tooltip')
-	            .attr("class", "tooltip")
-	            .style("opacity", 0.0);
-	            
-	                
+	    },
+	    
+	    addSvgMouseFunction: function(svg, xScaleOpp, yScale, h, foot_height, stockname, companyname, polyline, tooltip) {
 	        svg.on('mousemove', function(d) {
 	            var pos = d3.mouse(this);
 	            var index = parseInt(xScaleOpp(pos[0]));
-	            /*info.text("股票名：" + d[0][index + 1].name +  " \r\n" +
-	                      "日期：" + d[0][index + 1].date + " \r\n" + 
-	                      "开盘价：" + d[0][index + 1].open + " \r\n" + 
-	                      "收盘价：" + d[0][index + 1].end + " \r\n" + 
-	                      "交易总额：" + d[0][index + 1].summoney)
-	                .attr("x", padding)
-	                .attr("y", h - padding - 10);
-	                */
 	            polyline.attr({points: '' + pos[0] + ', ' + yScale(parseFloat(d[0][index + 1].end)) + ' ' + pos[0] + ', ' + (h - foot_height)});  
 	            
 	            tooltip.html("股票：" + stockname +  "<br />" +
@@ -31130,13 +31066,142 @@
 	        .on('mouseenter', function(d) {
 	        })
 	        .on('mouseout', function(d) {
-	            //d3.select('#line').remove();
-	            //d3.select('#info').remove();
-	            //info.text('');
 	            polyline.attr({points: '0, 0 0, 0'});
 	            tooltip.style("opacity", 0.0);
 	        });
+	    },       
+	    
+	    addPolyline: function(svg){
+	        // 在 svg 中插入 polyline
+	        polyline = svg.append('polyline')
+	            .attr({
+	                points: '0, 0 0, 0'
+	            })
+	            .attr('id', 'line')
+	            .style({
+	                fill: 'black',
+	            stroke: 'green',
+	            'stroke-width': 1
+	            });
+	            return polyline;
+	    },        
+	    
+	    addTooltip: function() {
+	        d3.select('#tooltip').remove();
+			var tooltip = d3.select("body")
+	            .append("div")
+	            .attr('id', 'tooltip')
+	            .attr("class", "tooltip")
+	            .style("opacity", 0.0);
+	        return tooltip;
+	    },        
+	    
+	    getMaxdata: function (dataset) {
+			maxdata = 0;	
+			for(var i = 0; i < dataset.length; i ++) {
+				maxdata = d3.max([maxdata, d3.max(dataset[i])]);	
+			}		
+			return maxdata;
+		},
+	    
+	    CrystalLineObject: function(svg, dataset, xScale, yScale, lineColor) {		
+	            this.group = null;
+	            this.path = null;
+			
+	            this.init = function(id) {
+	                var arr = dataset[id];
+	                this.group = svg.append("g")
+										
+	                var line = d3.svg.line()
+	                    .x(function(d,i){return xScale(i);})
+	                    .y(function(d){return yScale(d);});
+	                
+	                this.path = this.group.append("path")
+	                    .attr("d", line(arr))				
+	                    .style("fill", "none")
+	                    .style("stroke-width", 1)
+	                    .style("stroke", lineColor[id])
+	                    .style("stroke-opacity", 0.9);
+					/*				
+	                this.group.selectAll("circle")
+	                    .data(arr)
+	                    .enter()
+	                    .append("circle")
+	                    .attr("cx", function(d,i) {
+	                        return xScale(i);
+	                    }) 
+	                    .attr("cy", function(d) {
+	                        return yScale(d);  
+	                    })  
+	                    .attr("r", 5)
+	                    .attr("fill", lineColor[id]);
+	                */
+	            };
+	        },
+	    
+	    
+	    drawLineChart: function(stockname, companyname, mutildata) {
+	        var comparestockssize = mutildata.length;
+	        var datainfo = [[mutildata[0]]];
+	        var dataset = [];
+	        for(var i = 0; i < comparestockssize; ++ i) {
+	            var arr = [];
+	            for(var j = 1; j < mutildata[i].length; ++ j) {
+	                arr.push(parseFloat(mutildata[i][j].end));
+	            }
+	            dataset.push(arr);
+	        }
+	        
+	        var maxdata = this.getMaxdata(dataset);
+	        
+	        data = mutildata[0];     
+	        var xMarks = [];
+	        var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9"];        
+	        var len = data.length;
+	        for(var i = 1; i < len; i ++) {
+	            xMarks.push(data[i].date);
+	        }
+	        
+	        var w = 1000;
+	        var h = 400;
+	        var padding = 40;
+	        var head_height  = padding;
+	        var foot_height = padding;
+	        var title = stockname + "股票收盘统计图";
+	        var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
+	        
+	        var svg = this.addSvg(w, h, datainfo);
+	        
+	        this.addTitle(svg, w, h, head_height, title, subTitle);
+	        
+	        var xScale = d3.scale.linear()
+	            .domain([0, dataset[0].length - 1])
+	            .range([padding, w - padding]);
+	        
+	        var xScaleOpp = d3.scale.linear()
+	            .domain([padding, w - padding])
+	            .range([0, dataset[0].length - 1]);
+	        
+	        var yScale = d3.scale.linear()
+	            .domain([0, maxdata])
+	            .range([h - foot_height, head_height]);
+	        
+	        var yScaleOpp = d3.scale.linear()
+	            .domain([h - foot_height, head_height])
+	            .range([0, maxdata]);
+	        
+	        this.drawAxis(svg, w, h, padding, xScale, yScale, xMarks);
+	        
+	        for(var i = 0; i < comparestockssize; ++ i) {        
+	            var newLine = new this.CrystalLineObject(svg, dataset, xScale, yScale, lineColor);
+	            newLine.init(i);
+	        }
+	        
+	        var polyline = this.addPolyline(svg);
+	        var tooltip = this.addTooltip();
+	        this.addSvgMouseFunction(svg, xScaleOpp, yScale, h, foot_height, stockname, companyname, polyline, tooltip);
 	    },
+	    
 	    
 	        
 	  render: function() {
@@ -40708,6 +40773,35 @@
 	  });
 	  if (true) this.d3 = d3, !(__WEBPACK_AMD_DEFINE_FACTORY__ = (d3), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 	}();
+
+/***/ },
+/* 166 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(2);
+	var ReactDOM = __webpack_require__(159);
+	var marked = __webpack_require__(161);
+	var $ = __webpack_require__(162);
+	
+	var StockCompareList = React.createClass({displayName: "StockCompareList",
+	  render: function() {
+	    var stocks = this.props.compareData.map(function (stock_id){
+	        return (
+	            React.createElement("option", {key: stock_id, ref: stock_id}, 
+	            stock_id
+	            )
+	        );
+	    });
+	    return(
+	        React.createElement("select", {key: "stockcompare", id: "stockcompare", ref: "stockcompare"}, 
+	        stocks
+	        )
+	    );
+	  }
+	});
+	
+	module.exports = StockCompareList; 
+
 
 /***/ }
 /******/ ]);

@@ -19,6 +19,7 @@ exports.list = function(req, res) {
 // update stock information
 exports.update = function(req, res) {
     var stockidname = req.body.stockid;
+    console.log("stockidname:" + stockidname); 
     var stockid = stockidname.split(" ")[0];
     console.log("stockid:" + stockid);
     var sql = "SELECT date, open, max, min, end, uprate, vibrationrate, sumtimes, summoney FROM exchanges WHERE name='" + 
