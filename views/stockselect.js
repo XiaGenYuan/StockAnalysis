@@ -5,8 +5,12 @@ var $ = require('jquery');
 
 var StockSelect = React.createClass({
   SelectChanged: function(e) {
-    var select_data = e.target.value;
-    this.props.onSelectStock({stockid: select_data});
+    var checked = document.getElementById("checkbox").checked;
+    if(checked === false) {
+        var selectData = e.target.value;
+        var stockid = selectData.split(' ')[0];
+        this.props.onSelectStock({stockid: stockid});
+    }
   },
     
   render: function() {

@@ -30,7 +30,7 @@ var db = new sqlite3.Database(':memory:');
          obj = xlsx.parse('./model/data/' + companies[i][0] + '.xlsx');
          var change = obj[0].data;
          var change_len = change.length;
-         for(var j = 0; j < change_len; ++ j) {
+         for(var j = 1; j < change_len; ++ j) {
              stmt.run(companies[i][0], change[j][0], change[j][1], change[j][2], change[j][3], change[j][4], change[j][5], change[j][6], change[j][7], change[j][8]);
          }
          stmt.finalize();

@@ -80,19 +80,20 @@ var StockInfo = React.createClass({
         svg.on('mousemove', function(d) {
             var pos = d3.mouse(this);
             var index = parseInt(xScaleOpp(pos[0]));
-            polyline.attr({points: '' + pos[0] + ', ' + yScale(parseFloat(d[0][index + 1].end)) + ' ' + pos[0] + ', ' + (h - foot_height)});  
+            polyline.attr({points: '' + pos[0] + ', ' + yScale(parseFloat(d[0][index].end)) + 
+                ' ' + pos[0] + ', ' + (h - foot_height)});  
             
             tooltip.html("股票：" + stockname +  "<br />" +
                 "公司: " + companyname + "<br />" + 
-                "日期：" + d[0][index + 1].date + "<br />" + 
-                "开盘：" + d[0][index + 1].open + "<br />" + 
-                "最高: " + d[0][index + 1].max + "<br />" + 
-                "最低: " + d[0][index + 1].min + "<br />" +
-                "收盘：" + d[0][index + 1].end + "<br />" + 
-                "涨幅: " + (d[0][index + 1].uprate * 100).toFixed(2) + "%" + "<br />" + 
-                "振幅：" + (d[0][index + 1].vibrationrate * 100).toFixed(2) + "%" + "<br />" +
-                "总手: " + d[0][index + 1].sumtimes + "<br />" +  
-                "总额：" + d[0][index + 1].summoney)
+                "日期：" + d[0][index].date + "<br />" + 
+                "开盘：" + d[0][index].open + "<br />" + 
+                "最高: " + d[0][index].max + "<br />" + 
+                "最低: " + d[0][index].min + "<br />" +
+                "收盘：" + d[0][index].end + "<br />" + 
+                "涨幅: " + (d[0][index].uprate * 100).toFixed(2) + "%" + "<br />" + 
+                "振幅：" + (d[0][index].vibrationrate * 100).toFixed(2) + "%" + "<br />" +
+                "总手: " + d[0][index].sumtimes + "<br />" +  
+                "总额：" + d[0][index].summoney)
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY + 20) + "px")
 				.style("opacity",1.0);
@@ -175,25 +176,36 @@ var StockInfo = React.createClass({
     
     
     drawLineChart: function(stockname, companyname, mutildata) {
-        var comparestockssize = mutildata.length;
-        var datainfo = [[mutildata[0]]];
+        var stockIdArr = stockname.split(",");
+        var comparestockssize = stockIdArr.length;
         var dataset = [];
         for(var i = 0; i < comparestockssize; ++ i) {
             var arr = [];
-            for(var j = 1; j < mutildata[i].length; ++ j) {
-                arr.push(parseFloat(mutildata[i][j].end));
-            }
             dataset.push(arr);
         }
         
-        var maxdata = this.getMaxdata(dataset);
+        var data0 = [];
+
+        for(var j = 0; j < mutildata.length; ++ j) {
+            if(stockIdArr[0] === mutildata[j].name) {
+                data0.push(mutildata[j]);
+            };
+            for(var i = 0; i < comparestockssize; ++ i) {
+                if(stockIdArr[i] === mutildata[j].name) {
+                    dataset[i].push(parseFloat(mutildata[j].end));
+                }
+            }
+        }
         
-        data = mutildata[0];     
+        var datainfo = [[data0]];
+       
+        var maxdata = this.getMaxdata(dataset);
+            
         var xMarks = [];
         var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9"];        
-        var len = data.length;
-        for(var i = 1; i < len; i ++) {
-            xMarks.push(data[i].date);
+        var len = data0.length;
+        for(var i = 0; i < len; i ++) {
+            xMarks.push(data0[i].date);
         }
         
         var w = 1000;
@@ -202,7 +214,7 @@ var StockInfo = React.createClass({
         var head_height  = padding;
         var foot_height = padding;
         var title = stockname + "股票收盘统计图";
-        var subTitle = data[1].date + " 至 " + data[data.length - 1].date;
+        var subTitle = data0[1].date + " 至 " + data0[data0.length - 1].date;
         
         var svg = this.addSvg(w, h, datainfo);
         

@@ -18,12 +18,14 @@ exports.list = function(req, res) {
 
 // update stock information
 exports.update = function(req, res) {
-    var stockidname = req.body.stockid;
-    console.log("stockidname:" + stockidname); 
-    var stockid = stockidname.split(" ")[0];
-    console.log("stockid:" + stockid);
-    var sql = "SELECT date, open, max, min, end, uprate, vibrationrate, sumtimes, summoney FROM exchanges WHERE name='" + 
-         stockid + "'";
+    var stockarr = req.body.stockid.split(",");
+    console.log("stockarr:" + stockarr.length);
+    var sql = "SELECT name, date, open, max, min, end, uprate, vibrationrate, sumtimes, summoney FROM exchanges WHERE ";
+    for(var i = 0; i < stockarr.length - 1; ++ i) {
+        sql += "name='" + stockarr[i] + "' OR ";
+    }
+    sql += "name='" + stockarr[stockarr.length - 1] + "'";
+    console.log("sql:" + sql);
     exchangesQuery.query(sql, req, res);
     /*var stockidname = req.body.stockid;
     var stockid = stockidname.split(" ")[0];
