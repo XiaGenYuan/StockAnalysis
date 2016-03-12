@@ -5,7 +5,7 @@ var $ = require('jquery');
 
 var StockCompareList = React.createClass({
   render: function() {
-    var stocks = this.props.compareData.map(function (stock_id){
+    var stocks = this.props.stockCompare.map(function (stock_id){
         return (
             <option key={stock_id} ref={stock_id}>
             {stock_id}

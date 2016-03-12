@@ -54,9 +54,13 @@
 	var React = __webpack_require__(2);
 	var ReactDOM = __webpack_require__(159);
 	var Stock = __webpack_require__(160);
+	var Provider = __webpack_require__(173).Provider;
+	var store = __webpack_require__(189);
 	
 	ReactDOM.render(
-	    React.createElement(Stock, {url: "/stock"}),
+	    React.createElement(Provider, {store: store}, 
+	        React.createElement(Stock, {url: "/stock"})
+	    ),
 	    document.getElementById('stock')
 	 );
 
@@ -19671,30 +19675,16 @@
 	var marked = __webpack_require__(161);
 	var $ = __webpack_require__(162);
 	var redux = __webpack_require__(163);
-	var react_redux = __webpack_require__(173);
+	var ReactRedux = __webpack_require__(173);
 	
 	var StockSelect = __webpack_require__(184);
 	var StockInfo = __webpack_require__(185);
 	var StockCompareList = __webpack_require__(187);
+	var Provider = __webpack_require__(173);
+	var actions = __webpack_require__(188);
 	
 	
-	var reducer = function(state, action){
-	    switch (action.type) {
-	        case 'modify_data':
-	            return action.content;
-	        default:
-	            return state;
-	    }
-	};
-	
-	var store = redux.createStore(reducer, []);
-	
-	
-	var Stock = React.createClass({displayName: "Stock",
-	  getInitialState: function() {
-	    return {data: [], compareData: [], compareDataTotal: []};
-	  },
-	    
+	var Stock = React.createClass({displayName: "Stock", 
 	    reflashTable: function(stockname, companyname, data) {
 	        this.refs.stockinfo.drawLineChart(stockname, companyname, data);
 	    },
@@ -19705,7 +19695,7 @@
 	            dataType: 'json',
 	            cache: false,
 	            success: function(data) {
-	                this.setState({data: data});
+	                this.props.updateIDs(data);
 	                if(data.length > 0){
 	                    var id = data[0].split(' ')[0];
 	                    this.handleStockIDToServer({stockid: id});
@@ -19726,22 +19716,8 @@
 	            data: stockid,
 	            success: function(data) { 
 	                var stockname = stockid.stockid;
-	                this.reflashTable(stockname, "", data);
-	                /*
-	                var stockname = stockid.stockid.split(' ')[0];
-	                var companyname = stockid.stockid.split(' ')[1];
-	                var checked = this.refs.showornot.checked;
-	                if(checked === false) {
-	                    this.reflashTable(stockname, companyname, [data]);
-	                } else {
-	                    var compareDataTotal = store.getState();
-	                    //var compareDataTotal = this.state.compareDataTotal;
-	                    compareDataTotal.push(data);
-	                    store.dispatch({type: 'modify_data', content: data});
-	                    //this.setState({compareDataTotal: compareDataTotal});
-	                    alert("store:" + store.getState().length);
-	                }
-	                */
+	                this.props.updateStockInformation(data);
+	                this.reflashTable(stockname, "");
 	            }.bind(this),
 	            error: function(xhr, status, err) {
 	                alert(this.props.url, status, err.toString());
@@ -19751,25 +19727,33 @@
 	    
 	    
 	    addStockToCompare: function() {
-	        this.state.compareData.push(document.getElementById("stockselect").value);
-	        this.setState({compareData: this.state.compareData});
+	        var stockCompare = this.props.stockCompare;
+	        stockCompare.push(document.getElementById("stockselect").value);
+	        this.props.updateStockCompare(stockCompare);
+	        this.compareShoworNot();
 	    },
 	    
 	    deleteStockFromCompare: function() {
+	        var deleteIndex = document.getElementById("stockcompare").selectedIndex;
+	        var stockCompare = this.props.stockCompare;
+	        stockCompare.splice(deleteIndex, 1);
+	        this.props.updateStockCompare(stockCompare);
+	        this.compareShoworNot();
 	    },
 	    
 	    deleteAllStocksFromCompare: function() {
+	        this.props.updateStockCompare([]);
+	        this.compareShoworNot();
 	    },
 	    
 	    compareShoworNot: function() {
-	        //alert("checkbox:" + this.refs.showornot.checked);
 	        var checked = this.refs.showornot.checked;
 	        if(checked === true) {
-	            //store.dispatch({type: 'modify_data', data: []});
-	            var comparelist = document.getElementById("stockcompare").options;
+	            //var comparelist = document.getElementById("stockcompare").options;
+	            var comparelist = this.props.stockCompare;
 	            var compare_stocks = "";
 	            for(var i = 0; i < comparelist.length; ++ i) {
-	                var stockid = comparelist[i].text;
+	                var stockid = comparelist[i];
 	                var stockname = stockid.split(' ')[0];
 	                if(i < comparelist.length - 1) {
 	                    compare_stocks += stockname + ",";
@@ -19792,22 +19776,46 @@
 	    return (
 	      React.createElement("div", {className: "stock"}, 
 	        "选择股票", 
-	        React.createElement(StockSelect, {ref: "select", data: this.state.data, onSelectStock: this.handleStockIDToServer}), 
+	        React.createElement(StockSelect, {ref: "select", data: this.props.stockIDs, onSelectStock: this.handleStockIDToServer}), 
 	        React.createElement("button", {type: "button", onClick: this.addStockToCompare}, "增加对比"), 
 	        "  " + " " +
 	        "对比股票列表", 
-	        React.createElement(StockCompareList, {ref: "stockcompare", compareData: this.state.compareData}), 
+	        React.createElement(StockCompareList, {ref: "stockcompare", stockCompare: this.props.stockCompare}), 
 	        React.createElement("button", {type: "button", onClick: this.deleteStockFromCompare}, "删除"), 
 	        React.createElement("button", {type: "button", onClick: this.deleteAllStocksFromCompare}, "全部删除"), 
 	        React.createElement("input", {type: "checkbox", id: "checkbox", ref: "showornot", onClick: this.compareShoworNot}, "对比显示"), 
 	        React.createElement("p", null), 
-	        React.createElement(StockInfo, {ref: "stockinfo"})
+	        React.createElement(StockInfo, {ref: "stockinfo", stockInformation: this.props.stockInformation})
 	      )
 	    );
 	  }
 	});
 	
-	module.exports = Stock; 
+	
+	var mapStateToProps = function(state){
+		return {
+	        stockInformation: state.stockInformation,
+	        stockIDs: state.stockIDs,
+	        stockCompare: state.stockCompare
+	    };
+	};
+	
+	var mapDispatchToProps = function(dispatch){
+		return {
+			updateStockInformation: function(stockInformation){
+	            dispatch(actions.updateStockInformation(stockInformation)); 
+	        },
+	        updateIDs: function(stockIDs){
+	            dispatch(actions.updateIDs(stockIDs));
+	        },
+	        updateStockCompare: function(stockCompare) {
+	            dispatch(actions.updateStockCompare(stockCompare));
+	        }
+		}
+	};
+	
+	
+	module.exports = ReactRedux.connect(mapStateToProps, mapDispatchToProps)(Stock); 
 
 
 /***/ },
@@ -32611,7 +32619,8 @@
 	        },
 	    
 	    
-	    drawLineChart: function(stockname, companyname, mutildata) {
+	    drawLineChart: function(stockname, companyname) {
+	        var mutildata = this.props.stockInformation;
 	        var stockIdArr = stockname.split(",");
 	        var comparestockssize = stockIdArr.length;
 	        var dataset = [];
@@ -32638,7 +32647,7 @@
 	        var maxdata = this.getMaxdata(dataset);
 	            
 	        var xMarks = [];
-	        var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9"];        
+	        var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9", "F0F", "F99", "F9F", "FFF"];        
 	        var len = data0.length;
 	        for(var i = 0; i < len; i ++) {
 	            xMarks.push(data0[i].date);
@@ -42267,7 +42276,7 @@
 	
 	var StockCompareList = React.createClass({displayName: "StockCompareList",
 	  render: function() {
-	    var stocks = this.props.compareData.map(function (stock_id){
+	    var stocks = this.props.stockCompare.map(function (stock_id){
 	        return (
 	            React.createElement("option", {key: stock_id, ref: stock_id}, 
 	            stock_id
@@ -42283,6 +42292,137 @@
 	});
 	
 	module.exports = StockCompareList; 
+
+
+/***/ },
+/* 188 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	    updateStockInformation: function(stockInformation) {
+	        return {
+	            type: "UPDATE_STOCK_INFORMATION",
+	            stockInformation: stockInformation
+	        };
+	    },
+	    updateIDs: function(stockIDs) {
+	        return {
+	            type: "UPDATE_STOCK_IDS",
+	            stockIDs: stockIDs
+	        };
+	    },
+	    updateStockCompare: function(stockCompare) {
+	        return {
+	            type: "UPDATE_STOCK_COMPARE",
+	            stockCompare: stockCompare
+	        };
+	    }
+	};
+
+
+/***/ },
+/* 189 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Redux = __webpack_require__(163);
+	var initialState = __webpack_require__(190);
+	var thunk = __webpack_require__(191);
+	var stockInformationReducer = __webpack_require__(192);
+	var stockIDs = __webpack_require__(193);
+	var stockCompare = __webpack_require__(194);
+	
+	
+	var rootReducer = Redux.combineReducers({
+	    stockInformation: stockInformationReducer,
+	    stockIDs: stockIDs,
+	    stockCompare: stockCompare
+	});
+	
+	module.exports = Redux.createStore(rootReducer, initialState());
+
+
+/***/ },
+/* 190 */
+/***/ function(module, exports) {
+
+	module.exports = function(){
+	    return {
+	        stockInformation: [],
+	        stockIDs: [],
+	        stockCompare: []
+	    };
+	};
+
+
+/***/ },
+/* 191 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	exports.__esModule = true;
+	exports['default'] = thunkMiddleware;
+	function thunkMiddleware(_ref) {
+	  var dispatch = _ref.dispatch;
+	  var getState = _ref.getState;
+	
+	  return function (next) {
+	    return function (action) {
+	      if (typeof action === 'function') {
+	        return action(dispatch, getState);
+	      }
+	
+	      return next(action);
+	    };
+	  };
+	}
+
+/***/ },
+/* 192 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var initialState = __webpack_require__(190);
+	
+	module.exports = function(state, action) {
+	    switch(action.type){
+	        case "UPDATE_STOCK_INFORMATION":
+	            return action.stockInformation;
+	        default:
+	            return state || initialState().stockInformation;
+	    }
+	};
+
+
+/***/ },
+/* 193 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var initialState = __webpack_require__(190);
+	
+	module.exports = function(state, action) {
+	    switch(action.type){
+	        case "UPDATE_STOCK_IDS":
+	            return action.stockIDs;
+	        default:
+	            return state || initialState().stockIDs;
+	    }
+	};
+
+
+/***/ },
+/* 194 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var initialState = __webpack_require__(190);
+	
+	module.exports = function(state, action) {
+	    switch(action.type){
+	        case "UPDATE_STOCK_COMPARE":
+	            return action.stockCompare;
+	        default:
+	            return state || initialState().stockCompare;
+	    }
+	};
 
 
 /***/ }

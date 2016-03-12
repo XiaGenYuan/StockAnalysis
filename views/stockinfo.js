@@ -175,7 +175,8 @@ var StockInfo = React.createClass({
         },
     
     
-    drawLineChart: function(stockname, companyname, mutildata) {
+    drawLineChart: function(stockname, companyname) {
+        var mutildata = this.props.stockInformation;
         var stockIdArr = stockname.split(",");
         var comparestockssize = stockIdArr.length;
         var dataset = [];
@@ -202,7 +203,7 @@ var StockInfo = React.createClass({
         var maxdata = this.getMaxdata(dataset);
             
         var xMarks = [];
-        var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9"];        
+        var lineColor = ["#F00","#09F","#0F0", "F09", "F90", "0F9", "9F9", "F0F", "F99", "F9F", "FFF"];        
         var len = data0.length;
         for(var i = 0; i < len; i ++) {
             xMarks.push(data0[i].date);
