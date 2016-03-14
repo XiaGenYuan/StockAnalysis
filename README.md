@@ -7,4 +7,3 @@ If you want to run this project on Max OS, you should follow these steps:
 4. webpack react.js codes.
 5. run the server with 'DEBUG = StockAnalysis npm start'.
 6. visit http://localhost:3000.
-
